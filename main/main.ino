@@ -1,7 +1,7 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
-
-
+#include <OneWire.h>
+#include <DallasTemperature.h>
 // https://github.com/knolleary/pubsubclient/issues/425
 // The below define is not working. I'm commenting it out
 // so that if it starts to work magically (on updated version
@@ -10,19 +10,26 @@
 #include <PubSubClient.h>
 
 
-// Connection configuration. Edit accordingly
+// Defines
 #define SSID "WIFI_SSID"
 #define WIFIPASSWORD "WIFI_PASSWORD"
 #define MQTT_SERVER "192.168.0.107"
 #define MQTT_PORT 1883
-
-
-// Globals :) Oh sweet embedded development ...
-WiFiClient wificli;
-PubSubClient mqttcli(wificli);
-
+#define ONEWIREBUS 22 
+#define DOORSENSORPIN 23
 #define FAST 50
 #define SLOW 200
+
+// Globals
+WiFiClient wificli;
+PubSubClient mqttcli(wificli);
+OneWire oneWire(ONEWIREBUS);
+DallasTemperature tempSensor(&oneWire);
+float temp0 = 0;
+float temp1 = 0;
+float temp2 = 23;
+int doorstate = 1;
+
 // Blink status led n times. For debugging purposes
 void LedBlink(unsigned int times, unsigned int speed)
 {
@@ -90,22 +97,8 @@ void ConnectMQTT()
   }
 }
 
-void ReadSensors()
-{
-
-}
-
 void SendMessage(const char* topic, int value)
 {
-  // JSON can be sent as below. I'm avoiding it
-  // to save resources
-  //StaticJsonDocument<300> json;
-  //json["sensor"] = 1;
-  //json["type"] = "temp";
-  //json["value"] = random(100);
-  //char JSONmessageBuffer[100];
-  //serializeJson(json, JSONmessageBuffer);.
-
   static char charBuf[10];
   memset(charBuf, 0, sizeof(charBuf));
   itoa(value, charBuf, 10);
@@ -114,10 +107,21 @@ void SendMessage(const char* topic, int value)
   }
 }
 
+void ReadSensors()
+{
+  tempSensor.requestTemperaturesByIndex(0);
+  tempSensor.requestTemperaturesByIndex(1);
+  temp0 = tempSensor.getTempCByIndex(0);
+  temp1 = tempSensor.getTempCByIndex(1);
+  doorstate = digitalRead(DOORSENSORPIN);
+}
+  
 void setup() {
   pinMode(2, OUTPUT);
   Serial.begin(115200);
+  tempSensor.begin();
   Serial.println("Hello ESP32 World!");
+  pinMode(DOORSENSORPIN, INPUT_PULLUP);
 }
 
 void loop() {
@@ -126,10 +130,10 @@ void loop() {
   if (!mqttcli.connected())
     return;
   ReadSensors();
-  SendMessage("sensors/temperature/cold_corridor/0", random(100));
-  SendMessage("sensors/temperature/hot_corridor/0", random(100));
+  SendMessage("sensors/temperature/cold_corridor/0", random(temp0));
+  SendMessage("sensors/temperature/hot_corridor/0", random(temp1));
+  SendMessage("sensors/door/0", random(doorstate == HIGH));
   SendMessage("sensors/umidity/0", random(50));
-  SendMessage("sensors/door/0", random(2));
   SendMessage("sensors/smoke/0", random(2));
   delay(1000);
 }
