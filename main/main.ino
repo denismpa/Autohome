@@ -1,5 +1,4 @@
 #include <WiFi.h>
-#include <ArduinoJson.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 // https://github.com/knolleary/pubsubclient/issues/425
@@ -11,24 +10,64 @@
 
 
 // Defines
-#define SSID "WIFI_SSID"
-#define WIFIPASSWORD "WIFI_PASSWORD"
-#define MQTT_SERVER "192.168.0.107"
+#define SSID "versatushpc"
+#define WIFIPASSWORD "versatushpc.com.br/v1"
+#define MQTT_SERVER "172.21.1.248"
 #define MQTT_PORT 1883
-#define ONEWIREBUS 22 
+#define ONEWIREBUS 22
 #define DOORSENSORPIN 23
 #define FAST 50
 #define SLOW 200
+#define SENSORS_ADDR_SIZ 8
+#define SENSORS_MAX 2
+
+#define DEBUG_TEMPERATURES
 
 // Globals
 WiFiClient wificli;
 PubSubClient mqttcli(wificli);
 OneWire oneWire(ONEWIREBUS);
 DallasTemperature tempSensor(&oneWire);
-float temp0 = 0;
-float temp1 = 0;
-float temp2 = 23;
+float temperatures[SENSORS_MAX];
 int doorstate = 1;
+uint8_t sensors_addrs[SENSORS_MAX][SENSORS_ADDR_SIZ];
+
+void PrintSensorsAddress(const uint8_t *addr)
+{
+  char tmp[2];
+  for (int i = 0; i < SENSORS_ADDR_SIZ; i++) {
+    sprintf(tmp, "%02x", addr[i]);
+    Serial.print(tmp);
+  }
+}
+
+void SaveSensorsAddrs()
+{
+  int i = 0, j = 0;
+
+  oneWire.reset_search();
+  while (oneWire.search(sensors_addrs[i])) {
+    if (OneWire::crc8(sensors_addrs[i], 7) != sensors_addrs[i][7])
+      goto err;
+
+    if (++i >= SENSORS_MAX)
+      break;
+  }
+
+  for (i = 0; i < SENSORS_MAX; i++) {
+    Serial.print("#");
+    Serial.print(i);
+    Serial.print(" sensor address: ");
+    PrintSensorsAddress(sensors_addrs[i]);
+    Serial.println();
+  }
+  goto out;
+err:
+  Serial.println('CRC error reading sensor one wire address');
+out:
+  oneWire.reset_search();
+}
+
 
 // Blink status led n times. For debugging purposes
 void LedBlink(unsigned int times, unsigned int speed)
@@ -107,21 +146,41 @@ void SendMessage(const char* topic, int value)
   }
 }
 
+void ReadTemperatures()
+{
+  for (int i = 0; i < SENSORS_MAX; i++) {
+    if (!tempSensor.requestTemperaturesByAddress(sensors_addrs[i])) {
+      Serial.print("Failed to read temperature for #");
+      Serial.print(i);
+      Serial.print(" sensor with address ");
+      PrintSensorsAddress(sensors_addrs[i]);
+      Serial.println();
+      LedBlink(3, SLOW);
+      LedBlink(2, FAST);
+    }
+    temperatures[i] = tempSensor.getTempC(sensors_addrs[i]);
+#ifdef DEBUG_TEMPERATURES
+    Serial.print("Temperature #");
+    Serial.print(i);
+    Serial.print(" read ");
+    Serial.println(temperatures[i]);
+#endif
+  }
+}
+
 void ReadSensors()
 {
-  tempSensor.requestTemperaturesByIndex(0);
-  tempSensor.requestTemperaturesByIndex(1);
-  temp0 = tempSensor.getTempCByIndex(0);
-  temp1 = tempSensor.getTempCByIndex(1);
+  ReadTemperatures();
   doorstate = digitalRead(DOORSENSORPIN);
 }
-  
+
 void setup() {
   pinMode(2, OUTPUT);
-  Serial.begin(115200);
-  tempSensor.begin();
-  Serial.println("Hello ESP32 World!");
   pinMode(DOORSENSORPIN, INPUT_PULLUP);
+  Serial.begin(115200);
+  Serial.println("Hello ESP32 World!");
+  tempSensor.begin();
+  SaveSensorsAddrs();
 }
 
 void loop() {
@@ -130,9 +189,12 @@ void loop() {
   if (!mqttcli.connected())
     return;
   ReadSensors();
-  SendMessage("sensors/temperature/cold_corridor/0", random(temp0));
-  SendMessage("sensors/temperature/hot_corridor/0", random(temp1));
-  SendMessage("sensors/door/0", random(doorstate == HIGH));
+  for (int i = 0; i < SENSORS_MAX; i++) {
+    static char topic[32] = {0};
+    snprintf(topic, sizeof(topic), "sensors/temperature/%d", i);
+    SendMessage(topic, temperatures[i]);
+  }
+  SendMessage("sensors/door/0", doorstate == HIGH);
   SendMessage("sensors/umidity/0", random(50));
   SendMessage("sensors/smoke/0", random(2));
   delay(1000);
