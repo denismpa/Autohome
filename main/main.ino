@@ -19,7 +19,7 @@
 #define FAST 50
 #define SLOW 200
 #define SENSORS_ADDR_SIZ 8
-#define SENSORS_MAX 2
+#define SENSORS_MAX 8
 
 #define DEBUG_TEMPERATURES
 
@@ -39,7 +39,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Hello ESP32 World!");
   tempSensor.begin();
-  SaveSensorsAddrs();
+  SensorsProbe();
 }
 
 void loop() {

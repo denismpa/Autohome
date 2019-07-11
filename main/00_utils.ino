@@ -13,14 +13,17 @@ void PrintSensorsAddress(const uint8_t *addr)
   Serial.print(StaticStringifySensorAddress(addr));
 }
 
-void SaveSensorsAddrs()
+void SensorsProbe()
 {
-  int i = 0, j = 0;
+  int i = 0;
 
   oneWire.reset_search();
   while (oneWire.search(sensors_addrs[i])) {
-    if (OneWire::crc8(sensors_addrs[i], 7) != sensors_addrs[i][7])
-      goto err;
+    if (OneWire::crc8(sensors_addrs[i], 7) != sensors_addrs[i][7]) {
+        Serial.println("CRC error reading sensor one wire address");
+        memset(sensors_addrs[i], 0, SENSORS_ADDR_SIZ);
+        continue;
+    }
 
     i++;
     if (i >= SENSORS_MAX)
@@ -37,10 +40,6 @@ void SaveSensorsAddrs()
     PrintSensorsAddress(sensors_addrs[i]);
     Serial.println();
   }
-  goto out;
-err:
-  Serial.println('CRC error reading sensor one wire address');
-out:
   oneWire.reset_search();
 }
 
