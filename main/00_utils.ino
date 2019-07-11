@@ -1,9 +1,8 @@
 const char *StaticStringifySensorAddress(const uint8_t *addr)
 {
   static char space[SENSORS_ADDR_SIZ * 2 + 1] = {0};
-  int i = 0;
 
-  for (i = 0; i < SENSORS_ADDR_SIZ; i++)
+  for (int i = 0; i < SENSORS_ADDR_SIZ; i++)
     snprintf(&space[i * 2], 3, "%02x", addr[i]);
   return space;
 }
