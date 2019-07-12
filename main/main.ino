@@ -10,9 +10,9 @@
 
 
 // Defines
-#define SSID "versatushpc"
-#define WIFIPASSWORD "versatushpc.com.br/v1"
-#define MQTT_SERVER "172.21.1.248"
+#define SSID "VersatusHPC_Monitoring"
+#define WIFIPASSWORD "versatushpc"
+#define MQTT_SERVER "192.168.4.1"
 #define MQTT_PORT 1883
 #define ONEWIREBUS 22
 #define DOORSENSORPIN 23
