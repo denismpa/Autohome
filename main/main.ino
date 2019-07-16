@@ -7,6 +7,8 @@
 // of the library) the behavior doens't change silently
 // #define MQTT_SOCKET_TIMEOUT 1
 #include <PubSubClient.h>
+#include <Wire.h>
+#include <SparkFunHTU21D.h>
 
 
 // Defines
@@ -20,6 +22,8 @@
 #define SLOW 200
 #define SENSORS_ADDR_SIZ 8
 #define SENSORS_MAX 8
+#define I2C_SDA 21
+#define I2C_SCL 19
 
 #define DEBUG_TEMPERATURES
 
@@ -32,6 +36,9 @@ float temperatures[SENSORS_MAX];
 int doorstate = 1;
 uint8_t sensors_addrs[SENSORS_MAX][SENSORS_ADDR_SIZ];
 uint8_t sensors_found = 0;
+HTU21D htu21d;
+float htu21d_humidity = 0;
+float htu21d_temp = 0;
 
 void setup() {
   pinMode(2, OUTPUT);
@@ -40,6 +47,8 @@ void setup() {
   Serial.println("Hello ESP32 World!");
   tempSensor.begin();
   SensorsProbe();
+  Wire.begin(I2C_SDA, I2C_SCL);
+  htu21d.begin();
 }
 
 void loop() {
@@ -53,8 +62,9 @@ void loop() {
     snprintf(topic, sizeof(topic), "sensors/temperature/%s", StaticStringifySensorAddress(sensors_addrs[i]));
     SendMessage(topic, temperatures[i]);
   }
+  SendMessage("sensors/temperature/HTU21D", htu21d_temp);
   SendMessage("sensors/door/0", doorstate == HIGH);
-  SendMessage("sensors/umidity/0", random(50));
+  SendMessage("sensors/humidity/0", htu21d_humidity);
   SendMessage("sensors/smoke/0", random(2));
   delay(1000);
 }

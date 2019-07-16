@@ -20,9 +20,21 @@ void ReadTemperatures()
   }
 }
 
+void ReadHTU21D()
+{
+  htu21d_humidity = htu21d.readHumidity();
+  htu21d_temp = htu21d.readTemperature();
+}
+
+void ReadDoor()
+{
+  doorstate = digitalRead(DOORSENSORPIN);
+}
+
 void ReadSensors()
 {
   ReadTemperatures();
-  doorstate = digitalRead(DOORSENSORPIN);
+  ReadHTU21D();
+  ReadDoor();
 }
 
