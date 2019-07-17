@@ -1,123 +1,54 @@
 #include <WiFi.h>
-#include <ArduinoJson.h>
-
-
+#include <OneWire.h>
+#include <DallasTemperature.h>
 // https://github.com/knolleary/pubsubclient/issues/425
 // The below define is not working. I'm commenting it out
 // so that if it starts to work magically (on updated version
 // of the library) the behavior doens't change silently
 // #define MQTT_SOCKET_TIMEOUT 1
 #include <PubSubClient.h>
+#include <Wire.h>
+#include <SparkFunHTU21D.h>
 
 
-// Connection configuration. Edit accordingly
-#define SSID "WIFI_SSID"
-#define WIFIPASSWORD "WIFI_PASSWORD"
-#define MQTT_SERVER "192.168.0.107"
+// Defines
+#define SSID "VersatusHPC_Monitoring"
+#define WIFIPASSWORD "versatushpc"
+#define MQTT_SERVER "192.168.4.1"
 #define MQTT_PORT 1883
-
-
-// Globals :) Oh sweet embedded development ...
-WiFiClient wificli;
-PubSubClient mqttcli(wificli);
-
+#define ONEWIREBUS 22
+#define DOORSENSORPIN 23
 #define FAST 50
 #define SLOW 200
-// Blink status led n times. For debugging purposes
-void LedBlink(unsigned int times, unsigned int speed)
-{
-  while (times-- > 0) {
-    digitalWrite(2, HIGH);
-    delay(speed);
-    digitalWrite(2, LOW);
-    delay(speed);
-  }
-  delay(1000);
-}
+#define SENSORS_ADDR_SIZ 8
+#define SENSORS_MAX 8
+#define I2C_SDA 21
+#define I2C_SCL 19
 
-void ConnectToWiFi()
-{
-  if (WiFi.status() == WL_CONNECTED)
-    return;
+#define DEBUG_TEMPERATURES
 
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(SSID, WIFIPASSWORD);
-  Serial.print("Connecting to ");
-  Serial.println(SSID);
-
-  uint8_t i = 0;
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.print('.');
-    LedBlink(2, FAST);
-    if ((++i % 16) == 0)
-    {
-      Serial.println(F(" still trying to connect"));
-    }
-  }
-
-  Serial.print(F("Connected. My IP address is: "));
-  Serial.println(WiFi.localIP());
-}
-
-void ConnectMQTT()
-{
-  uint8_t i = 0;
-
-  if (mqttcli.connected())
-    return;
-
-  Serial.println("Connecting to MQTT broker " MQTT_SERVER " ...");
-  mqttcli.setServer(MQTT_SERVER, MQTT_PORT);
-  while (!mqttcli.connected())
-  {
-    // This take a long time to return if broker is offline
-    bool connected = mqttcli.connect("ESP32Client");
-    LedBlink(3, FAST);
-    if (connected)
-    {
-      Serial.println("Connected to the broker " MQTT_SERVER "!");
-    }
-    else
-    {
-      Serial.print(".");
-      if ((++i % 16) == 0)
-      {
-        Serial.print(F(" still trying to connect "));
-        Serial.println(mqttcli.state());
-      }
-    }
-  }
-}
-
-void ReadSensors()
-{
-
-}
-
-void SendMessage(const char* topic, int value)
-{
-  // JSON can be sent as below. I'm avoiding it
-  // to save resources
-  //StaticJsonDocument<300> json;
-  //json["sensor"] = 1;
-  //json["type"] = "temp";
-  //json["value"] = random(100);
-  //char JSONmessageBuffer[100];
-  //serializeJson(json, JSONmessageBuffer);.
-
-  static char charBuf[10];
-  memset(charBuf, 0, sizeof(charBuf));
-  itoa(value, charBuf, 10);
-  if (mqttcli.publish(topic, charBuf) == false) {
-    Serial.println("Error sending message");
-  }
-}
+// Globals
+WiFiClient wificli;
+PubSubClient mqttcli(wificli);
+OneWire oneWire(ONEWIREBUS);
+DallasTemperature tempSensor(&oneWire);
+float temperatures[SENSORS_MAX];
+int doorstate = 1;
+uint8_t sensors_addrs[SENSORS_MAX][SENSORS_ADDR_SIZ];
+uint8_t sensors_found = 0;
+HTU21D htu21d;
+float htu21d_humidity = 0;
+float htu21d_temp = 0;
 
 void setup() {
   pinMode(2, OUTPUT);
+  pinMode(DOORSENSORPIN, INPUT_PULLUP);
   Serial.begin(115200);
   Serial.println("Hello ESP32 World!");
+  tempSensor.begin();
+  SensorsProbe();
+  Wire.begin(I2C_SDA, I2C_SCL);
+  htu21d.begin();
 }
 
 void loop() {
@@ -126,10 +57,14 @@ void loop() {
   if (!mqttcli.connected())
     return;
   ReadSensors();
-  SendMessage("sensors/temperature/cold_corridor/0", random(100));
-  SendMessage("sensors/temperature/hot_corridor/0", random(100));
-  SendMessage("sensors/umidity/0", random(50));
-  SendMessage("sensors/door/0", random(2));
+  for (int i = 0; i < sensors_found; i++) {
+    static char topic[32 + SENSORS_ADDR_SIZ * 2] = {0};
+    snprintf(topic, sizeof(topic), "sensors/temperature/%s", StaticStringifySensorAddress(sensors_addrs[i]));
+    SendMessage(topic, temperatures[i]);
+  }
+  SendMessage("sensors/temperature/HTU21D", htu21d_temp);
+  SendMessage("sensors/door/0", doorstate == HIGH);
+  SendMessage("sensors/humidity/0", htu21d_humidity);
   SendMessage("sensors/smoke/0", random(2));
   delay(1000);
 }
