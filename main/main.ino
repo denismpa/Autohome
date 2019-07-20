@@ -16,14 +16,13 @@
 #define WIFIPASSWORD "versatushpc"
 #define MQTT_SERVER "192.168.4.1"
 #define MQTT_PORT 1883
-#define ONEWIREBUS 22
+#define ONEWIREBUS 19
 #define DOORSENSORPIN 23
 #define FAST 50
 #define SLOW 200
 #define SENSORS_ADDR_SIZ 8
 #define SENSORS_MAX 8
-#define I2C_SDA 21
-#define I2C_SCL 19
+
 
 #define DEBUG_TEMPERATURES
 
@@ -47,7 +46,7 @@ void setup() {
   Serial.println("Hello ESP32 World!");
   tempSensor.begin();
   SensorsProbe();
-  Wire.begin(I2C_SDA, I2C_SCL);
+//  Wire.begin(I2C_SDA, I2C_SCL);
   htu21d.begin();
 }
 

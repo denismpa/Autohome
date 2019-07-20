@@ -24,6 +24,16 @@ void ReadHTU21D()
 {
   htu21d_humidity = htu21d.readHumidity();
   htu21d_temp = htu21d.readTemperature();
+  #ifdef DEBUG_TEMPERATURES
+    Serial.print("Temperature #");
+    //PrintSensorsAddress(sensors_addrs[i]); - verificar se é aplicavel colher o endereco do sensor i2c
+    Serial.print(" read ");
+    Serial.println(htu21d_temp);
+        Serial.print("Humidity #");
+    //PrintSensorsAddress(sensors_addrs[i]); - verificar se é aplicavel colher o endereco do sensor i2c
+    Serial.print(" read ");
+    Serial.println(htu21d_humidity);
+  #endif
 }
 
 void ReadDoor()
@@ -37,4 +47,3 @@ void ReadSensors()
   ReadHTU21D();
   ReadDoor();
 }
-
