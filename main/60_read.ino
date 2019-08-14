@@ -41,9 +41,15 @@ void ReadDoor()
   doorstate = digitalRead(DOORSENSORPIN);
 }
 
+void ReadSmoke()
+{
+  smokestate = digitalRead(SMOKESENSORPIN);
+}
+
 void ReadSensors()
 {
   ReadTemperatures();
   ReadHTU21D();
   ReadDoor();
+  ReadSmoke();
 }

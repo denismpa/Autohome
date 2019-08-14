@@ -22,7 +22,7 @@
 #define SLOW 200
 #define SENSORS_ADDR_SIZ 8
 #define SENSORS_MAX 8
-
+#define SMOKESENSORPIN 18
 
 #define DEBUG_TEMPERATURES
 
@@ -38,10 +38,12 @@ uint8_t sensors_found = 0;
 HTU21D htu21d;
 float htu21d_humidity = 0;
 float htu21d_temp = 0;
+int smokestate = 1;
 
 void setup() {
   pinMode(2, OUTPUT);
   pinMode(DOORSENSORPIN, INPUT_PULLUP);
+  pinMode(SMOKESENSORPIN, INPUT_PULLUP);
   Serial.begin(115200);
   Serial.println("Hello ESP32 World!");
   tempSensor.begin();
@@ -64,6 +66,6 @@ void loop() {
   SendMessage("sensors/temperature/HTU21D", htu21d_temp);
   SendMessage("sensors/door/0", doorstate == HIGH);
   SendMessage("sensors/humidity/0", htu21d_humidity);
-  SendMessage("sensors/smoke/0", random(2));
+  SendMessage("sensors/smoke/0", smokestate == HIGH);
   delay(1000);
 }
