@@ -17,11 +17,11 @@ modes, fast or slow. This table translate led blinks to some error:
  
 # PINS and Wires
 
-Door sensor must have one pole attached to ground, other one attached to D23
-Smoke sensor must have one pole attached to ground, other one attached to D18
-Temperature sensor DS18B20 must be attached to D19. VCC is +3.3V. There MUST BE A 4k7 RESISTOR BETWEEN DATA AND VCC
+* Door sensor must have one pole attached to ground, other one attached to D23
+* Smoke sensor must have one pole attached to ground, other one attached to D18
+* Temperature sensor DS18B20 must be attached to D19. VCC is +3.3V. There MUST BE A 4k7 RESISTOR BETWEEN DATA AND VCC
 
-Sensor HT21D must have the following wiring:
+* Sensor HT21D must have the following wiring:
 						CL - D22
 						DA - D21
 						GND - GND
