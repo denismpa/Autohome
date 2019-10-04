@@ -19,9 +19,9 @@ void SensorsProbe()
   oneWire.reset_search();
   while (oneWire.search(sensors_addrs[i])) {
     if (OneWire::crc8(sensors_addrs[i], 7) != sensors_addrs[i][7]) {
-        Serial.println("CRC error reading sensor one wire address");
-        memset(sensors_addrs[i], 0, SENSORS_ADDR_SIZ);
-        continue;
+      Serial.println("CRC error reading sensor one wire address");
+      memset(sensors_addrs[i], 0, SENSORS_ADDR_SIZ);
+      continue;
     }
 
     i++;

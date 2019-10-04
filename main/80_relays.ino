@@ -1,38 +1,37 @@
 
 /*
- * index = relay index
- * operation 1 = onoff
- * operation2 = pulse
- * duration = pulse duration
+   index = value of RELAY1PIN for relay1 | value of RELAY2PIN for relay2
+   operation = on = 1 | off = 0 | pulse = 2
+   duration = pulse duration
 
 */
 
-uint8_t relay_control(uint8_t index,  uint8_t operation, uint8_t duration ){
-
-  if (operation != 1 && operation != 2){
-    Serial.print("no such operation");
-    return 1;
-  } else if (operation == 1){
-      onoff(index);
-    } else{
-      pulse(index, duration);
-      }
-}
-
-uint8_t onoff(uint8_t index){
-  if (index != 1  && index != 2){
+uint8_t relay_control(uint8_t index,  uint8_t operation, uint8_t duration ) {
+  if (index != RELAY1PIN  && index != RELAY2PIN) {
     Serial.print("no such relay address");
     return 1;
-  } else if (index == 1){
-      digitalWrite(RELAY1PIN, !digitalRead(RELAY1PIN));
-    } else{
-      digitalWrite(RELAY2PIN, !digitalRead(RELAY2PIN));
-      }
-}
-
-uint8_t pulse(uint8_t index, uint8_t duration){
-  onoff(index);
-  delay(duration);
-  onoff(index);
-  
+  }
+  switch (operation) {
+    case 0:
+      #ifdef DEBUG_TEMPERATURES
+      Serial.println((String)"setting relay " + index + "to OFF with HIGH output");
+      #endif
+      digitalWrite(index, HIGH);
+      break;
+    case 1:
+      #ifdef DEBUG_TEMPERATURES
+      Serial.println((String)"setting relay " + index + "to ON with LOW output");
+      #endif
+      digitalWrite(index, LOW);
+      break;
+    case 2:
+      digitalWrite(index, !digitalRead(index));
+      delay(duration);
+      digitalWrite(index, !digitalRead(index));
+      break;
+    default:
+      Serial.println("ERROR: No such Operation for Relays. Use 1 for on, 0 for off or 2 for pulse");
+      return 1;
+      break;
+  }
 }
