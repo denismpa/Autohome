@@ -1,4 +1,4 @@
-void ReadTemperatures()
+void ReadDS18B20()
 {
   for (int i = 0; i < sensors_found; i++) {
     if (!tempSensor.requestTemperaturesByAddress(sensors_addrs[i])) {
@@ -25,11 +25,11 @@ void ReadHTU21D()
   htu21d_humidity = htu21d.readHumidity();
   htu21d_temp = htu21d.readTemperature();
   #ifdef DEBUG_TEMPERATURES
-    Serial.print("Temperature #");
+    Serial.print("Temperature HT21D#");
     //PrintSensorsAddress(sensors_addrs[i]); - verificar se é aplicavel colher o endereco do sensor i2c
     Serial.print(" read ");
     Serial.println(htu21d_temp);
-        Serial.print("Humidity #");
+        Serial.print("Humidity HT21D#");
     //PrintSensorsAddress(sensors_addrs[i]); - verificar se é aplicavel colher o endereco do sensor i2c
     Serial.print(" read ");
     Serial.println(htu21d_humidity);
@@ -39,16 +39,22 @@ void ReadHTU21D()
 void ReadDoor()
 {
   doorstate = digitalRead(DOORSENSORPIN);
+    #ifdef DEBUG_TEMPERATURES
+    Serial.println((String)"Door: "+doorstate);
+  #endif
 }
 
 void ReadSmoke()
 {
   smokestate = digitalRead(SMOKESENSORPIN);
+  #ifdef DEBUG_TEMPERATURES
+    Serial.println((String)"Smoke: "+smokestate);
+  #endif
 }
 
 void ReadSensors()
 {
-  ReadTemperatures();
+  ReadDS18B20();
   ReadHTU21D();
   ReadDoor();
   ReadSmoke();
