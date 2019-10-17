@@ -33,8 +33,8 @@
 #define DHTTYPE DHT22
 
 //below lines enable or disable MQTT and WIFI
-//#define USEMQTT
-//#define USEWIFI
+#define USEMQTT
+#define USEWIFI
 
 #define DEBUG_TEMPERATURES
 
@@ -96,6 +96,7 @@ void loop() {
   SendMessage("sensors/temperature/HTU21D", htu21d_temp);
   SendMessage("sensors/door/0", doorstate == HIGH);
   SendMessage("sensors/humidity/0", htu21d_humidity);
+  SendMessage("sensors/humidity/1", dht_humid);
   SendMessage("sensors/smoke/0", smokestate == HIGH);
 #endif
   delay(1000);
