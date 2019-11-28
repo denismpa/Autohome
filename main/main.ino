@@ -63,8 +63,8 @@ void setup() {
   pinMode(SMOKESENSORPIN, INPUT_PULLUP);
   pinMode(RELAY1PIN, OUTPUT);
   pinMode(RELAY2PIN, OUTPUT);
-  digitalWrite(RELAY1PIN, LOW);
-  digitalWrite(RELAY2PIN, LOW);
+  digitalWrite(RELAY1PIN, HIGH);
+  digitalWrite(RELAY2PIN, HIGH);
   pinMode(RELAY1CONTROL, INPUT_PULLUP);
   pinMode(RELAY2CONTROL, INPUT_PULLUP);
   Serial.begin(115200);
@@ -84,6 +84,8 @@ void loop() {
   ConnectMQTT();
   if (!mqttcli.connected())
     return;
+  else
+    mqttcli.loop();
 #endif
   ReadSensors();
 
@@ -98,6 +100,8 @@ void loop() {
   SendMessage("sensors/humidity/0", htu21d_humidity);
   SendMessage("sensors/humidity/1", dht_humid);
   SendMessage("sensors/smoke/0", smokestate == HIGH);
+  SendMessage("relays/1/status", (long int)GPIO_REG_READ(GPIO_OUT1_REG) & 0x2); // RELAY1PIN
+  SendMessage("relays/2/status", (long int)GPIO_REG_READ(GPIO_OUT1_REG) & 0x1); // RELAY2PIN
 #endif
   delay(1000);
 #ifdef DEBUG_TEMPERATURES

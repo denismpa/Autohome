@@ -25,6 +25,9 @@ uint8_t relay_control(uint8_t index,  uint8_t operation, uint8_t duration ) {
       digitalWrite(index, LOW);
       break;
     case 2:
+      #ifdef DEBUG_TEMPERATURES
+      Serial.println((String)"toggling relay " + index);
+      #endif
       digitalWrite(index, !digitalRead(index));
       delay(duration);
       digitalWrite(index, !digitalRead(index));

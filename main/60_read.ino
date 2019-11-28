@@ -98,6 +98,6 @@ void ReadSensors()
   ReadDoor();
   ReadSmoke();
   ReadDHT22();
-  ReadTestRelay();
+  //ReadTestRelay();
   ReadDHT22();
 }
