@@ -3,7 +3,6 @@ static uint8_t relays[] = { RELAY1PIN, RELAY2PIN };
 void Callback(char *topic, byte *message, unsigned int length)
 {
   uint8_t command = message[0] - '0'; // convert '1' to 1
-  uint8_t relay;
 
   Serial.print("Message received topic => ");
   Serial.print(topic);
