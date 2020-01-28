@@ -25,4 +25,3 @@ void SendMessage(const char *topic, bool value)
   else
     publish(topic, "0");
 }
-

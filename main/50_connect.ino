@@ -32,6 +32,8 @@ void ConnectMQTT()
 
   Serial.println("Connecting to MQTT broker " MQTT_SERVER " ...");
   mqttcli.setServer(MQTT_SERVER, MQTT_PORT);
+
+
   while (!mqttcli.connected())
   {
     // This take a long time to return if broker is offline
@@ -40,6 +42,15 @@ void ConnectMQTT()
     if (connected)
     {
       Serial.println("Connected to the broker " MQTT_SERVER "!");
+        mqttcli.setCallback(Callback);
+      if (!mqttcli.subscribe("relays/1")) {
+        Serial.println("Subscribe error relays/1");
+        mqttcli.disconnect();
+      }
+      if (!mqttcli.subscribe("relays/2")) {
+        Serial.println("Subscribe error relays/2");
+        mqttcli.disconnect();
+      }
     }
     else
     {
