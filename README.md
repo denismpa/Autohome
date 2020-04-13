@@ -32,5 +32,7 @@ modes, fast or slow. This table translate led blinks to some error:
 * OneWire
 * DallasTemperature
 * PubSubClient
+* SparkFun_HTU21D
+* DHT-sensor-library (and its dependences)
 
 All dependencies are installable from the _Manage Libraries_ menu at Arduino IDE.
