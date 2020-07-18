@@ -37,7 +37,7 @@ void ConnectMQTT()
   while (!mqttcli.connected())
   {
     // This take a long time to return if broker is offline
-    bool connected = mqttcli.connect("ESP32Client");
+    bool connected = mqttcli.connect("ESP32Client", MQTT_USER, MQTT_PASS);
     LedBlink(3, FAST);
     if (connected)
     {
@@ -48,6 +48,14 @@ void ConnectMQTT()
         mqttcli.disconnect();
       }
       if (!mqttcli.subscribe("relays/2")) {
+        Serial.println("Subscribe error relays/2");
+        mqttcli.disconnect();
+      }
+      if (!mqttcli.subscribe("relays/3")) {
+        Serial.println("Subscribe error relays/2");
+        mqttcli.disconnect();
+      }
+      if (!mqttcli.subscribe("relays/4")) {
         Serial.println("Subscribe error relays/2");
         mqttcli.disconnect();
       }

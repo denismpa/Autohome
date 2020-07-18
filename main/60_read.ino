@@ -53,7 +53,7 @@ void ReadSmoke()
 }
 
 
-
+/*
 void ReadTestRelay() {
   if (digitalRead(RELAY1CONTROL) == 1) {
 #ifdef DEBUG_TEMPERATURES
@@ -80,7 +80,7 @@ void ReadTestRelay() {
     relay_control(RELAY2PIN, 1, 0);
   }
 }
-
+*/
 void ReadDHT22() {
   dht_humid = dht.readHumidity();
   dht_temp = dht.readTemperature();

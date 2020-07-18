@@ -7,7 +7,7 @@
 */
 
 uint8_t relay_control(uint8_t index,  uint8_t operation, uint8_t duration ) {
-  if (index != RELAY1PIN  && index != RELAY2PIN) {
+  if (index != RELAY1PIN  && index != RELAY2PIN  && index != RELAY3PIN && index != RELAY4PIN) {
     Serial.print("no such relay address");
     return 1;
   }
@@ -15,7 +15,7 @@ uint8_t relay_control(uint8_t index,  uint8_t operation, uint8_t duration ) {
     case 0:
       #ifdef DEBUG_TEMPERATURES
       Serial.println((String)"setting relay " + index + "to OFF with HIGH output");
-      #endif
+     #endif
       digitalWrite(index, HIGH);
       break;
     case 1:

@@ -13,10 +13,12 @@
 #include <DHT.h>
 
 // Defines
-#define SSID "VersatusHPC_Monitoring"
-#define WIFIPASSWORD "versatushpc"
-#define MQTT_SERVER "192.168.4.1"
+#define SSID "DBCOOPER"
+#define WIFIPASSWORD "34360664"
+#define MQTT_SERVER "192.168.15.19"
 #define MQTT_PORT 1883
+#define MQTT_USER "dbbroker"
+#define MQTT_PASS "34360664"
 #define FAST 50
 #define SLOW 200
 #define SENSORS_ADDR_SIZ 8
@@ -27,8 +29,8 @@
 #define SMOKESENSORPIN 25
 #define RELAY1PIN 33
 #define RELAY2PIN 32
-#define RELAY1CONTROL 19
-#define RELAY2CONTROL 21
+#define RELAY3PIN 19
+#define RELAY4PIN 21
 #define DHTPIN 26
 #define DHTTYPE DHT22
 
@@ -36,7 +38,7 @@
 #define USEMQTT
 #define USEWIFI
 
-#define DEBUG_TEMPERATURES
+//#define DEBUG_TEMPERATURES
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -63,10 +65,14 @@ void setup() {
   pinMode(SMOKESENSORPIN, INPUT_PULLUP);
   pinMode(RELAY1PIN, OUTPUT);
   pinMode(RELAY2PIN, OUTPUT);
+  pinMode(RELAY3PIN, OUTPUT);
+  pinMode(RELAY4PIN, OUTPUT);
   digitalWrite(RELAY1PIN, HIGH);
   digitalWrite(RELAY2PIN, HIGH);
-  pinMode(RELAY1CONTROL, INPUT_PULLUP);
-  pinMode(RELAY2CONTROL, INPUT_PULLUP);
+  digitalWrite(RELAY3PIN, HIGH);
+  digitalWrite(RELAY4PIN, HIGH);
+
+  
   Serial.begin(115200);
   Serial.println("Hello ESP32 World!");
   tempSensor.begin();
@@ -103,8 +109,11 @@ void loop() {
     SendMessage("sensors/humidity/1", dht_humid);
   SendMessage("sensors/door/0", doorstate == HIGH);
   SendMessage("sensors/smoke/0", smokestate == HIGH);
-  SendMessage("relays/1/status", (long int)GPIO_REG_READ(GPIO_OUT1_REG) & 0x2); // RELAY1PIN
-  SendMessage("relays/2/status", (long int)GPIO_REG_READ(GPIO_OUT1_REG) & 0x1); // RELAY2PIN
+  SendMessage("relays/1/status", (long int)digitalRead(RELAY1PIN)); // RELAY1PIN
+  SendMessage("relays/2/status", (long int)digitalRead(RELAY2PIN)); // RELAY2PIN
+  SendMessage("relays/3/status", (long int)digitalRead(RELAY3PIN)); // RELAY3PIN
+  SendMessage("relays/4/status", (long int)digitalRead(RELAY4PIN)); // RELAY4PIN
+  //SendMessage("relays/2/status", (long int)GPIO_REG_READ(GPIO_OUT1_REG) & 0x1); // RELAY2PIN
 #endif
   delay(1000);
 #ifdef DEBUG_TEMPERATURES
